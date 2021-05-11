@@ -1,0 +1,107 @@
+
+### Allgemein
+smtpd_banner = {{ .Env.HOSTNAME }}.{{ .Env.DOMAIN }} ESMTP
+myhostname = {{ .Env.HOSTNAME }}.{{ .Env.DOMAIN }}
+mydomain = {{ .Env.DOMAIN }}
+mydestination =
+local_recipient_maps =
+
+maillog_file=/var/log/postfix.log
+
+### Server side TLS parameters
+smtpd_tls_chain_files =
+	/srv/cert/privkey.pem,
+	/srv/cert/cert.pem
+smtpd_tls_CAfile=/srv/cert/fullchain.pem
+smtpd_tls_loglevel = 2
+#smtpd_tls_received_header = yes
+smtpd_tls_security_level =  {{ .Env.ENCRYPT_SETTING }}
+smtpd_tls_auth_only = yes
+
+smtpd_tls_session_cache_timeout = 3600s
+tls_random_source = dev:/dev/urandom
+
+### Client side TLS parameters
+smtp_tls_security_level = {{ .Env.ENCRYPT_SETTING }}
+
+
+### Mail-Queue Einstellungen
+
+maximal_queue_lifetime = {{ .Env.MAXIMAL_QUEUE_LIFETIME }}
+bounce_queue_lifetime = {{ .Env.BOUNCE_QUEUE_LIFETIME }}
+maximal_backoff_time = 15m
+minimal_backoff_time = 5m
+queue_run_delay = 5m
+
+
+### nur Relayhosting vom lokalen Server:
+mynetworks = [::1]/128, [::ffff:127.0.0.0]/104, 10.0.0.0/8, 172.16.0.0/12
+
+
+### Relay   ####
+smtp_sasl_auth_enable = yes
+smtp_sasl_password_maps = static:{{ .Env.RELAY_USER }}:{{.Env.RELAY_PASSWORD}}
+smtp_sasl_security_options = noanonymous
+smtp_tls_security_level = may
+header_size_limit = 4096000
+relayhost = {{ .Env.RELAY_HOST }}:{{ .Env.RELAY_PORT }}
+
+
+### Regeln
+
+smtpd_helo_required = yes
+strict_rfc821_envelopes = yes
+disable_vrfy_command = yes
+smtpd_delay_reject = yes
+
+smtpd_helo_restrictions =
+	permit_sasl_authenticated,
+	permit_mynetworks,
+	reject_invalid_hostname,
+	reject_unknown_hostname,
+	reject_unauth_pipelining,
+	reject_non_fqdn_hostname
+
+
+smtpd_recipient_restrictions =
+	permit_mynetworks,
+	permit_sasl_authenticated,
+	reject_invalid_hostname,
+	reject_non_fqdn_hostname,
+	reject_unknown_recipient_domain,
+	reject_non_fqdn_recipient,
+	reject_non_fqdn_sender,
+	reject_unknown_sender_domain,
+	reject_unauth_destination,
+	reject_unknown_client,
+	reject_rbl_client zen.spamhaus.org,
+	reject_rbl_client cbl.abuseat.org,
+	reject_rbl_client bl.spamcop.net,
+	reject_rbl_client dul.dnsbl.sorbs.net,
+	reject_rbl_client whois.rfc-ignorant.org,
+	reject_rbl_client combined.rbl.msrbl.net,
+	reject_rbl_client blackholes.easynet.nl,
+	reject_rbl_client proxies.blackholes.wirehub.net,
+	reject_rbl_client ix.dnsbl.manitu.net
+
+
+
+### DNS blocklists
+postscreen_dnsbl_threshold = 2
+postscreen_dnsbl_sites =    ix.dnsbl.manitu.net*2
+                            zen.spamhaus.org*2
+postscreen_dnsbl_action = drop
+
+### Maximale Größe eingehender E-Mails in Bytes (100 MB)
+message_size_limit = 220000000
+
+### Keine System-Benachrichtigung für Benutzer bei neuer E-Mail
+biff = no
+
+### Nutzer müssen immer volle E-Mail Adresse angeben - nicht nur Hostname
+append_dot_mydomain = no
+
+### Trenn-Zeichen für "Address Tagging"
+recipient_delimiter = +
+
+
