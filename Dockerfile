@@ -13,7 +13,7 @@ ENV ENCRYPT_SETTING=may \
 	RELAY_HOST='' \
 	RELAY_PORT='587' \
 	RELAY_USER=user \
-	RELAY_PASSWORD=password \
+	RELAY_PASSWORD=password
 
 
 
