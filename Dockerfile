@@ -22,7 +22,7 @@ RUN apt-get update &&\
         echo "postfix postfix/mailname string $DOMAIN_1"; \
         echo  "postfix postfix/main_mailer_type string 'Internet Site'";\
     } | debconf-set-selections  \
-	&& apt-get install -y --no-install-recommends postfix curl\
+	&& apt-get install -y --no-install-recommends postfix curl procps \
 	&& apt-get --purge -y remove 'exim4*'
 
 # download dockerize
